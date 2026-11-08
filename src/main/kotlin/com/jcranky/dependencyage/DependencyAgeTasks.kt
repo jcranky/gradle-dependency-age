@@ -49,7 +49,7 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
             throw GradleException(
                 "verifyDependencyAge: baseRef is blank. " +
                     "Set -PbaseRef=<ref>, or run in an MR/PR pipeline that provides " +
-                    "the diff base (e.g. GitLab's CI_MERGE_REQUEST_DIFF_BASE_SHA) " +
+                    "the diff base (e.g. CI_MERGE_REQUEST_DIFF_BASE_SHA in GitLab MR pipelines) " +
                     "and map it via -PbaseRef. Refusing to scan the full " +
                     "lockfile to avoid silently bypassing diff-based verification.",
             )
