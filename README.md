@@ -25,7 +25,7 @@ Semantics worth knowing:
 
 ### `com.jcranky.dependency-age-filter` — update-report filter
 
-Registers the `filterCandidatesByAge` task (group `verification`): parses a ben-manes `dependencyUpdates` report, rejects candidates younger than `minDepAgeDays`, and writes the filtered copy to `<buildDir>/dependencyUpdates/report-filtered.txt` (section: "Accepted candidates"). The reject-vs-accept data is intentionally staged so update tooling can annotate dropped candidates ("filtered: published 4 days ago — will age out").
+Registers the `filterCandidatesByAge` task (group `verification`): parses a ben-manes `dependencyUpdates` report, rejects candidates younger than `minDepAgeDays`, and writes the filtered copy to `<buildDir>/dependencyUpdates/report-filtered.txt` (section: "Accepted candidates"). The reject-vs-accept data is intentionally staged so update tooling can annotate dropped candidates ("filtered: published 4 days ago — will age out"). Candidates whose publication date cannot be determined land in a separate "Unverifiable candidates" section marked `# UNVERIFIED` and are never recommended as safe.
 
 Both plugins share the same cache file, so a filter run warms the verify gate.
 
