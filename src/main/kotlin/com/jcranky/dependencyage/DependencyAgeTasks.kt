@@ -157,9 +157,11 @@ abstract class FilterCandidatesByAgeTask : DefaultTask() {
                 accepted = result.accepted,
                 rejected = result.rejected,
                 minAgeDays = minAgeDays.get(),
+                unverified = result.unverifiable,
             )
         logger.lifecycle(
-            "Filtered dependencyUpdates: ${result.accepted.size} accepted, ${result.rejected.size} rejected",
+            "Filtered dependencyUpdates: ${result.accepted.size} accepted, ${result.rejected.size} rejected, " +
+                "${result.unverifiable.size} unverifiable",
         )
     }
 }
