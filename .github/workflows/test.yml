@@ -16,3 +16,9 @@ jobs:
           java-version: 25
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew test
+      - name: check dependency lockfiles are up to date
+        # regenerating the locks must be a no-op: any diff means a declared
+        # or transitive dependency changed without regenerating lockfiles
+        run: |
+          ./gradlew :dependencies --write-locks > /dev/null
+          git diff --exit-code -- gradle.lockfile buildscript-gradle.lockfile
