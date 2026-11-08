@@ -61,7 +61,7 @@ class CandidateFilterTest {
     }
 
     @Test
-    fun `accepts candidates when publish time is unknown`() {
+    fun `excludes candidates with unknown publish time from the curated list`() {
         val candidates = listOf(CandidateUpdate("com.example", "lib", "1.0.0", "2.0.0"))
         val provider = FakePublishTimeProvider(publishTimes = emptyMap())
         val filter = CandidateFilter(provider, fixedClock(Instant.parse("2026-09-11T00:00:00Z")))
@@ -69,7 +69,9 @@ class CandidateFilterTest {
         val result = filter.filter(candidates, minAgeDays = 7)
 
         assertTrue(result.isOk)
-        assertEquals(1, result.accepted.size)
+        assertEquals(0, result.accepted.size, "an unverifiable candidate must not be recommended as safe")
+        assertEquals(1, result.unverifiable.size)
+        assertEquals("com.example:lib", "${result.unverifiable.single().group}:${result.unverifiable.single().artifact}")
     }
 
     private fun fixedClock(instant: Instant): Clock = Clock.fixed(instant, ZoneOffset.UTC)

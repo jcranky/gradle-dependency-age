@@ -19,12 +19,13 @@ Semantics worth knowing:
 
 - **Diff-based, not full-scan**: only dependencies *new or changed vs the base ref* are checked — the whole lockfile isn't re-verified on every run
 - **Blank baseRef is refused, not inferred**: if no base ref can be determined, the task fails instead of silently scanning everything (bypass protection)
-- **Escape hatch** (documented in the failure message): `-PminDepAgeDays=0` for genuine emergencies
+- **Fails closed on unknown publish times**: if a changed GAV's publication date cannot be determined (coordinates unresolvable, lookups failing), the task fails instead of skipping it — an unverifiable dependency counts as potentially fresh
+- **Escape hatch** (documented in the failure message): `-PminDepAgeDays=0` for genuine emergencies — note it cannot override the fail-closed case, since there is no age to waive
 - Publish-time lookups go through a **shared 30-day cache** (`<buildDir>/dependency-age-cache.json`) to keep CI fast; the cache file doubles as the task's output artifact
 
 ### `com.jcranky.dependency-age-filter` — update-report filter
 
-Registers the `filterCandidatesByAge` task (group `verification`): parses a ben-manes `dependencyUpdates` report, rejects candidates younger than `minDepAgeDays`, and writes the filtered copy to `<buildDir>/dependencyUpdates/report-filtered.txt` (section: "Accepted candidates"). The reject-vs-accept data is intentionally staged so update tooling can annotate dropped candidates ("filtered: published 4 days ago — will age out").
+Registers the `filterCandidatesByAge` task (group `verification`): parses a ben-manes `dependencyUpdates` report, rejects candidates younger than `minDepAgeDays`, and writes the filtered copy to `<buildDir>/dependencyUpdates/report-filtered.txt` (section: "Accepted candidates"). The reject-vs-accept data is intentionally staged so update tooling can annotate dropped candidates ("filtered: published 4 days ago — will age out"). Candidates whose publication date cannot be determined land in a separate "Unverifiable candidates" section marked `# UNVERIFIED` and are never recommended as safe.
 
 Both plugins share the same cache file, so a filter run warms the verify gate.
 
@@ -53,7 +54,7 @@ Requires `mavenCentral()` in `pluginManagement` repositories (`settings.gradle.k
 | Property (all tasks) | Default | Meaning |
 |---|---|---|
 | `minDepAgeDays` | `7` | Minimum age of a candidate/changed GAV; `0` disables the gate |
-| `baseRef` (verify only) | `CI_MERGE_REQUEST_DIFF_BASE_SHA` env var, else `origin/main` | Git ref whose lockfiles form the diff base |
+| `baseRef` (verify only) | CI-provided diff base (e.g. `CI_MERGE_REQUEST_DIFF_BASE_SHA`), else `origin/main` | Git ref whose lockfiles form the diff base |
 
 All task properties (`mainLockfile`, `buildscriptLockfile`, `cacheFile`, `dependencyUpdatesReport`, `filteredReport`) can be overridden in custom task configuration if your layout differs.
 
@@ -65,7 +66,7 @@ GitHub Actions (PR-only check):
 - run: ./gradlew verifyDependencyAge -PbaseRef=${{ github.event.pull_request.base.sha }}
 ```
 
-GitLab MR pipelines can map the diff base directly: `-PbaseRef=$CI_MERGE_REQUEST_DIFF_BASE_SHA`.
+In GitLab MR pipelines, the diff base is available directly: `-PbaseRef=$CI_MERGE_REQUEST_DIFF_BASE_SHA`.
 
 ## Where this fits
 
