@@ -52,6 +52,27 @@ class DependencyAgeSelfVerificationTest {
         SelfVerificationSupport.seedPublishTimeCache(projectDir, mapOf(seededGav to Instant.now()))
     }
 
+    @Test
+    fun selfCheckFailsWhenAPublicationTimeCannotBeDetermined() {
+        setupProject()
+        copyRepoLockfiles()
+        val baseRef = commitCurrentState()
+        File(projectDir, "gradle.lockfile")
+            .appendText("com.example.selfcheck:unresolvable-publication-time:1.0.0=compileClasspath\n")
+
+        val result = runVerify(baseRef, shouldFail = true)
+
+        assertEquals(
+            TaskOutcome.FAILED,
+            result.task(":verifyDependencyAge")!!.outcome,
+            "verify must fail closed when a changed dependency's publication date is unknown:\n${result.output}",
+        )
+        assertTrue(
+            "unresolvable-publication-time" in result.output,
+            "failure message should name the dependency with the unknown publish time:\n${result.output}",
+        )
+    }
+
     private fun setupProject() {
         File(projectDir, "settings.gradle.kts")
             .writeText("rootProject.name = \"dependency-age-selfcheck\"\n")
