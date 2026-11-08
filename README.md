@@ -19,7 +19,8 @@ Semantics worth knowing:
 
 - **Diff-based, not full-scan**: only dependencies *new or changed vs the base ref* are checked — the whole lockfile isn't re-verified on every run
 - **Blank baseRef is refused, not inferred**: if no base ref can be determined, the task fails instead of silently scanning everything (bypass protection)
-- **Escape hatch** (documented in the failure message): `-PminDepAgeDays=0` for genuine emergencies
+- **Fails closed on unknown publish times**: if a changed GAV's publication date cannot be determined (coordinates unresolvable, lookups failing), the task fails instead of skipping it — an unverifiable dependency counts as potentially fresh
+- **Escape hatch** (documented in the failure message): `-PminDepAgeDays=0` for genuine emergencies — note it cannot override the fail-closed case, since there is no age to waive
 - Publish-time lookups go through a **shared 30-day cache** (`<buildDir>/dependency-age-cache.json`) to keep CI fast; the cache file doubles as the task's output artifact
 
 ### `com.jcranky.dependency-age-filter` — update-report filter
