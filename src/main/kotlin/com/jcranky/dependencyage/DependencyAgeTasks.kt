@@ -81,7 +81,7 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
                 val lookup = lookupPublishTimes(PublishTimeProviders.cached(cacheFile.get().asFile), changed)
                 val result = DependencyAgeVerifier(Clock.systemUTC()).verifyFromLookup(lookup, minAgeDays.get())
                 if (!result.isOk) {
-                    throw GradleException(buildViolationMessage(result.violations, minAgeDays.get()))
+                    throw GradleException(buildViolationMessage(result, minAgeDays.get()))
                 }
                 logger.lifecycle(
                     "Verified ${changed.size} changed dependencies are at least ${minAgeDays.get()} days old",
@@ -99,16 +99,31 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
             outcome.stderr?.let { "\n  stderr (first 5 lines):\n$it" }.orEmpty()
 
     private fun buildViolationMessage(
-        violations: List<Violation>,
+        result: VerificationResult,
         minAgeDays: Int,
     ): String {
         val sb = StringBuilder()
-        sb.append("${violations.size} changed dependencies were published within the last $minAgeDays days:\n")
-        violations.forEach { v ->
-            sb.append("  - ${v.gav} (published ${v.publishTime})\n")
+        if (result.violations.isNotEmpty()) {
+            sb.append("${result.violations.size} changed dependencies were published within the last $minAgeDays days:\n")
+            result.violations.forEach { v ->
+                sb.append("  - ${v.gav} (published ${v.publishTime})\n")
+            }
+            sb.append("\nWait for the dependency to age out, or override with -PminDepAgeDays=0 if urgent.")
         }
-        sb.append("\nWait for the dependency to age out, or override with -PminDepAgeDays=0 if urgent.")
-        return sb.toString()
+        if (result.unknownPublishTimes.isNotEmpty()) {
+            sb.append(
+                "${result.unknownPublishTimes.size} changed dependencies could not be age-verified " +
+                    "because their publication date could not be determined (failing closed):\n",
+            )
+            result.unknownPublishTimes.forEach { gav ->
+                sb.append("  - $gav (no publication date available)\n")
+            }
+            sb.append(
+                "\nThis cannot be overridden with -PminDepAgeDays=0: without a publication date there is " +
+                    "no verified age. Check that the coordinates resolve correctly.",
+            )
+        }
+        return sb.toString().trimEnd()
     }
 }
 
@@ -161,7 +176,7 @@ object PublishTimeProviders {
 internal fun lookupPublishTimes(
     provider: PublishTimeProvider,
     gavs: List<Gav>,
-): Map<Gav, Instant> =
+): Map<Gav, Instant?> =
     runBlocking {
         coroutineScope {
             gavs
@@ -175,7 +190,6 @@ internal fun lookupPublishTimes(
                         }
                     }
                 }.awaitAll()
-                .filter { it.second != null }
-                .associate { it.first to it.second!! }
+                .associate { it.first to it.second }
         }
     }
