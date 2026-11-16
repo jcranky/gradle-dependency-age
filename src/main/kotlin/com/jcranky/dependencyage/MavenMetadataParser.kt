@@ -45,34 +45,33 @@ class MavenMetadataParser {
     }
 
     private fun extractVersionedTimestamps(xml: String): Map<String, Instant> {
-        val wrapped = Regex(
-            """<version>\s*<value>([^<]+)</value>\s*<lastUpdated>([^<]+)</lastUpdated>\s*</version>""",
-        )
-        val wrappedMatches = wrapped.findAll(xml)
-        val wrappedResult = mutableMapOf<String, Instant>()
-        wrappedMatches.forEach { match ->
+        val result = mutableMapOf<String, Instant>()
+        WRAPPED_VERSION_REGEX.findAll(xml).forEach { match ->
             val version = match.groupValues[1].trim()
-            val timestamp = match.groupValues[2].trim()
-            wrappedResult[version] = parseTimestamp(timestamp) ?: return@forEach
+            val timestamp = parseTimestamp(match.groupValues[2].trim()) ?: return@forEach
+            result[version] = timestamp
         }
-        if (wrappedResult.isNotEmpty()) return wrappedResult
-
-        val versionRegex = Regex("""<version>([^<]+)</version>""")
-        val timestampRegex = Regex("""<lastUpdated>([^<]+)</lastUpdated>""")
-        val versions = versionRegex.findAll(xml).map { it.groupValues[1].trim() }.toList()
-        val timestamps = timestampRegex.findAll(xml).map { it.groupValues[1].trim() }.toList()
-        val flatResult = mutableMapOf<String, Instant>()
-        for (i in versions.indices) {
-            val version = versions[i]
-            val raw = timestamps.getOrNull(i) ?: continue
-            val parsed = parseTimestamp(raw) ?: continue
-            flatResult[version] = parsed
+        // Pair a version with a lastUpdated only when the timestamp tag directly
+        // follows the version tag. Positional pairing across the whole document is
+        // unsound: standard maven-metadata.xml lists N plain <version> tags followed
+        // by a single versioning-level <lastUpdated>, which must not be attributed
+        // to the first listed version.
+        ADJACENT_VERSION_REGEX.findAll(xml).forEach { match ->
+            val version = match.groupValues[1].trim()
+            val timestamp = parseTimestamp(match.groupValues[2].trim()) ?: return@forEach
+            result[version] = timestamp
         }
-        return flatResult
+        return result
     }
 
     private companion object {
         private val MAVEN_TIMESTAMP_PATTERN = """^\d{14}$""".toRegex()
         private val MAVEN_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+        private val WRAPPED_VERSION_REGEX = Regex(
+            """<version>\s*<value>([^<]+)</value>\s*<lastUpdated>([^<]+)</lastUpdated>\s*</version>""",
+        )
+        private val ADJACENT_VERSION_REGEX = Regex(
+            """<version>([^<]+)</version>\s*<lastUpdated>([^<]+)</lastUpdated>""",
+        )
     }
 }
