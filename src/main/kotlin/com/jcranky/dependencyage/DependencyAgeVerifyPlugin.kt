@@ -16,12 +16,7 @@ open class DependencyAgeVerifyPlugin : Plugin<Project> {
         project.tasks
             .register("verifyDependencyAge", VerifyDependencyAgeTask::class.java)
             .configure {
-                minAgeDays.set(
-                    project.providers
-                        .gradleProperty("minDepAgeDays")
-                        .orElse("7")
-                        .map(String::toInt),
-                )
+                minAgeDays.set(minAgeDaysProperty(project))
                 baseRef.set(
                     project.providers
                         .gradleProperty("baseRef")

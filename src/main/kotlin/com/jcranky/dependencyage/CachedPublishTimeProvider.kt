@@ -4,6 +4,7 @@ import java.io.File
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 class CachedPublishTimeProvider(
     private val delegate: PublishTimeProvider,
@@ -12,16 +13,24 @@ class CachedPublishTimeProvider(
     private val clock: Clock = Clock.systemUTC(),
 ) : PublishTimeProvider {
     override fun getPublishTime(gav: Gav): Instant? {
-        val cache = readCache()
-        val cached = cache[gav.toString()]
-        if (cached != null && Duration.between(cached.fetchedAt, Instant.now(clock)) < cacheTtl) {
-            return cached.publishTime
-        }
+        // Callers (e.g. lookupPublishTimes) fetch concurrently; serialize per cache
+        // file so a read-modify-write never loses entries written by another caller.
+        val lock = LOCKS.computeIfAbsent(cacheFile.absolutePath) { Any() }
+        return synchronized(lock) {
+            val now = Instant.now(clock)
+            val cache = readCache()
+            val cached = cache[gav.toString()]
+            if (cached != null && Duration.between(cached.fetchedAt, now) < cacheTtl) {
+                return@synchronized cached.publishTime
+            }
 
-        val publishTime = delegate.getPublishTime(gav) ?: return null
-        cache[gav.toString()] = CacheEntry(publishTime, Instant.now(clock))
-        writeCache(cache)
-        return publishTime
+            val publishTime = delegate.getPublishTime(gav) ?: return@synchronized null
+            cache[gav.toString()] = CacheEntry(publishTime, now)
+            writeCache(
+                cache.filterValues { entry -> Duration.between(entry.fetchedAt, now) < cacheTtl },
+            )
+            publishTime
+        }
     }
 
     private fun readCache(): MutableMap<String, CacheEntry> {
@@ -58,4 +67,8 @@ class CachedPublishTimeProvider(
         val publishTime: Instant,
         val fetchedAt: Instant,
     )
+
+    private companion object {
+        private val LOCKS = ConcurrentHashMap<String, Any>()
+    }
 }
