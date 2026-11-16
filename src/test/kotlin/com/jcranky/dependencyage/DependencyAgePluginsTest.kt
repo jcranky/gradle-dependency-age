@@ -27,6 +27,7 @@ class DependencyAgePluginsTest {
             project.layout.buildDirectory.file("dependency-age-cache.json").get(),
             task.cacheFile.get(),
         )
+        assertEquals(project.rootDir, task.rootDir.get().asFile)
         assertEquals("verification", task.group)
     }
 

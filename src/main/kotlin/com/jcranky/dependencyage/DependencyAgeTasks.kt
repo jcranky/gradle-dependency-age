@@ -7,11 +7,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -36,6 +38,14 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
 
     @get:OutputFile
     abstract val cacheFile: RegularFileProperty
+
+    /**
+     * Directory the git commands run from (the build's root directory by default).
+     * Captured at configuration time so the task action never touches [project],
+     * keeping the task configuration-cache compatible.
+     */
+    @get:Internal
+    abstract val rootDir: DirectoryProperty
 
     init {
         group = "verification"
@@ -63,7 +73,7 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
                     baseRef = ref,
                     mainLockfile = mainLockfile.get().asFile,
                     buildscriptLockfile = buildscriptLockfile.get().asFile,
-                    workingDir = project.rootDir,
+                    workingDir = rootDir.get().asFile,
                 )
         ) {
             is LockfileDiffer.ReadFromBaseResult.Failure -> {
