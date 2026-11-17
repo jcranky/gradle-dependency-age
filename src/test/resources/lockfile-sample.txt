@@ -1,0 +1,3 @@
+com.auth0:java-jwt:4.6.1=compileClasspath,runtimeClasspath
+at.favre.lib:bcrypt:0.10.2=compileClasspath,runtimeClasspath
+ch.qos.logback:logback-classic:1.6.3=compileClasspath,runtimeClasspath
