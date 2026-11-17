@@ -116,6 +116,7 @@ class CachedPublishTimeProviderTest {
         assertEquals(publishTime, result)
         assertTrue(cacheFile.exists())
     }
+
     @Test
     fun `concurrent misses keep every fetched entry in the cache`() {
         val cacheFile = File.createTempFile("dep-age-cache", ".json").also { it.deleteOnExit() }

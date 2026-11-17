@@ -13,7 +13,8 @@ class FilteredReportWriterTest {
     private val clock = Clock.fixed(Instant.parse("2026-09-11T00:00:00Z"), ZoneOffset.UTC)
 
     @Test
-    fun `unverifiable candidates get their own section and are not recommended as safe`() {        val outputFile = File.createTempFile("report-filtered", ".txt")
+    fun `unverifiable candidates get their own section and are not recommended as safe`() {
+        val outputFile = File.createTempFile("report-filtered", ".txt")
 
         FilteredReportWriter(clock).write(
             outputFile = outputFile,
