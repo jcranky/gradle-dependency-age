@@ -18,7 +18,7 @@ Standalone Gradle plugin repo (published to Maven Central via tagged releases).
 ## Structure
 
 - `src/main/kotlin/com/jcranky/dependencyage/`: task + plugin entry points, then the pure core (parsers, differ, filter, verifier, fetchers, cache)
-- `src/test/kotlin/com/jcranky/dependencyage/`: one test class per unit + `DependencyAgePluginsTest` for registration defaults + `DependencyAgeSelfVerificationTest` (TestKit dogfooding against this repo's own lockfiles)
+- `src/test/kotlin/com/jcranky/dependencyage/`: one test class per unit + `DependencyAgePluginsTest` for registration defaults + `DependencyAgeSelfVerificationTest` / `DependencyAgeFilterSelfVerificationTest` (TestKit dogfooding: verify gate against this repo's own lockfiles, filter against a staged report; shared helpers in `SelfVerificationSupport`)
 - Publishing: tag-triggered CI job publishes to Maven Central (Central Portal); version lives in `build.gradle.kts`
 
 ## Release notes guidance
