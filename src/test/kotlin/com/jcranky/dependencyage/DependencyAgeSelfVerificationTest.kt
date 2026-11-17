@@ -1,6 +1,7 @@
 package com.jcranky.dependencyage
 
 import java.io.File
+import java.time.Instant
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -47,24 +48,8 @@ class DependencyAgeSelfVerificationTest {
         assertTrue(seededGav in result.output, "violation message should contain $seededGav:\n${result.output}")
     }
 
-    /**
-     * The publish-time provider is not injectable through TestKit, but its
-     * cache is: pre-seed an entry with `publishTime = fetchedAt = now` for the
-     * seeded GAV so the violation path is deterministic and network-free.
-     */
     private fun seedCache() {
-        val now = java.time.Instant.now()
-        File(projectDir, "build/dependency-age-cache.json").apply { parentFile.mkdirs() }
-            .writeText(
-                """
-                {
-                  "$seededGav": {
-                    "publishTime": "$now",
-                    "fetchedAt": "$now"
-                  }
-                }
-                """.trimIndent() + "\n",
-            )
+        SelfVerificationSupport.seedPublishTimeCache(projectDir, mapOf(seededGav to Instant.now()))
     }
 
     private fun setupProject() {
@@ -97,12 +82,7 @@ class DependencyAgeSelfVerificationTest {
             .withArguments("verifyDependencyAge", "-PbaseRef=$baseRef")
             .let { runner -> if (shouldFail) runner.buildAndFail() else runner.build() }
 
-    private fun repoLockfiles(): Pair<File, File> {
-        val root = generateSequence(File(System.getProperty("user.dir"))) { it.parentFile }
-            .firstOrNull { it.resolve("gradle.lockfile").exists() && it.resolve("buildscript-gradle.lockfile").exists() }
-            ?: error("could not locate the plugin repo root (gradle.lockfile) from ${System.getProperty("user.dir")}")
-        return root.resolve("gradle.lockfile") to root.resolve("buildscript-gradle.lockfile")
-    }
+    private fun repoLockfiles(): Pair<File, File> = SelfVerificationSupport.repoLockfiles()
 
     private fun git(vararg args: String): String {
         val process = ProcessBuilder("git", *args).directory(projectDir).start()
