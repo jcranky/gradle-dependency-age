@@ -1,6 +1,7 @@
 package com.jcranky.dependencyage
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -114,6 +115,61 @@ class CachedPublishTimeProviderTest {
 
         assertEquals(publishTime, result)
         assertTrue(cacheFile.exists())
+    }
+
+    @Test
+    fun `concurrent misses keep every fetched entry in the cache`() {
+        val cacheFile = File.createTempFile("dep-age-cache", ".json").also { it.deleteOnExit() }
+        cacheFile.writeText("{}")
+        val publishTime = Instant.parse("2025-01-01T00:00:00Z")
+        val gavs = (1..16).map { Gav("com.example", "lib-$it", "1.0.0") }
+        val delegate = RecordingProvider(gavs.associateWith { publishTime })
+        val provider = CachedPublishTimeProvider(delegate, cacheFile, Duration.ofDays(30))
+
+        val barrier = java.util.concurrent.CyclicBarrier(8)
+        val threads = (1..8).map {
+            Thread {
+                barrier.await()
+                gavs.forEach { provider.getPublishTime(it) }
+            }
+        }
+        threads.forEach { it.start() }
+        threads.forEach { it.join() }
+
+        val text = cacheFile.readText()
+        gavs.forEach { gav ->
+            assertTrue(text.contains("\"$gav\""), "cache must contain $gav after concurrent fetches, got:\n$text")
+        }
+    }
+
+    @Test
+    fun `stale entries are pruned when the cache is rewritten`() {
+        val cacheFile = File.createTempFile("dep-age-cache", ".json").also { it.deleteOnExit() }
+        val gav = Gav("com.example", "lib", "1.0.0")
+        val staleGav = Gav("com.example", "stale", "1.0.0")
+        val fixedNow = Instant.parse("2026-09-11T00:00:00Z")
+        val clock = Clock.fixed(fixedNow, ZoneOffset.UTC)
+        val staleFetchedAt = fixedNow.minus(Duration.ofDays(40))
+
+        cacheFile.writeText(
+            """
+            {
+              "$staleGav": {
+                "publishTime": "2025-01-01T00:00:00Z",
+                "fetchedAt": "$staleFetchedAt"
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val delegate = RecordingProvider(mapOf(gav to Instant.parse("2025-06-01T00:00:00Z")))
+        val provider = CachedPublishTimeProvider(delegate, cacheFile, Duration.ofDays(30), clock)
+
+        provider.getPublishTime(gav)
+
+        val text = cacheFile.readText()
+        assertTrue(text.contains("\"$gav\""))
+        assertFalse(text.contains("\"$staleGav\""), "entries past the TTL must not survive a cache rewrite, got:\n$text")
     }
 }
 

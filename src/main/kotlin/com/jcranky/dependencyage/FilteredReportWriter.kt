@@ -29,12 +29,15 @@ class FilteredReportWriter(
         sb.append("\n")
         sb.append("## Rejected candidates (too recent)\n")
         rejected.forEach { rejected ->
-            val daysAgo =
-                ChronoUnit.DAYS.between(rejected.publishTime, Instant.now(clock))
+            val ageLabel =
+                when (val daysAgo = ChronoUnit.DAYS.between(rejected.publishTime, Instant.now(clock))) {
+                    0L -> "less than a day"
+                    else -> "$daysAgo days"
+                }
             sb.append(
-                " # FILTERED: ${rejected.candidate.group}:${rejected.candidate.artifact}:" +
+                "# FILTERED: ${rejected.candidate.group}:${rejected.candidate.artifact}:" +
                     "${rejected.candidate.currentVersion} -> ${rejected.candidate.newVersion}" +
-                    " (published $daysAgo days ago)\n",
+                    " (published $ageLabel ago)\n",
             )
         }
         if (unverified.isNotEmpty()) {
@@ -42,7 +45,7 @@ class FilteredReportWriter(
             sb.append("## Unverifiable candidates (publication date unknown)\n")
             unverified.forEach { candidate ->
                 sb.append(
-                    " # UNVERIFIED: ${candidate.group}:${candidate.artifact}:" +
+                    "# UNVERIFIED: ${candidate.group}:${candidate.artifact}:" +
                         "${candidate.currentVersion} -> ${candidate.newVersion}" +
                         " (publication date unknown)\n",
                 )

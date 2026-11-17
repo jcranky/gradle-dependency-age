@@ -4,8 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
- * Registers the `filterCandidatesByAge` task with parity to the published configuration
- * historical configuration:
+ * Registers the `filterCandidatesByAge` task with parity to the historical configuration:
  *  - minAgeDays: gradle property `minDepAgeDays`, default 7
  *  - input: `<buildDir>/dependencyUpdates/report.txt` (ben-manes dependencyUpdates report)
  *  - output: `<buildDir>/dependencyUpdates/report-filtered.txt`
@@ -16,12 +15,7 @@ open class DependencyAgeFilterPlugin : Plugin<Project> {
         project.tasks
             .register("filterCandidatesByAge", FilterCandidatesByAgeTask::class.java)
             .configure {
-                minAgeDays.set(
-                    project.providers
-                        .gradleProperty("minDepAgeDays")
-                        .orElse("7")
-                        .map(String::toInt),
-                )
+                minAgeDays.set(minAgeDaysProperty(project))
                 dependencyUpdatesReport.set(
                     project.layout.buildDirectory.file("dependencyUpdates/report.txt"),
                 )

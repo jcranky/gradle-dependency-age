@@ -7,11 +7,15 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -36,6 +40,14 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
 
     @get:OutputFile
     abstract val cacheFile: RegularFileProperty
+
+    /**
+     * Directory the git commands run from (the build's root directory by default).
+     * Captured at configuration time so the task action never touches [project],
+     * keeping the task configuration-cache compatible.
+     */
+    @get:Internal
+    abstract val rootDir: DirectoryProperty
 
     init {
         group = "verification"
@@ -63,7 +75,7 @@ abstract class VerifyDependencyAgeTask : DefaultTask() {
                     baseRef = ref,
                     mainLockfile = mainLockfile.get().asFile,
                     buildscriptLockfile = buildscriptLockfile.get().asFile,
-                    workingDir = project.rootDir,
+                    workingDir = rootDir.get().asFile,
                 )
         ) {
             is LockfileDiffer.ReadFromBaseResult.Failure -> {
@@ -174,6 +186,22 @@ object PublishTimeProviders {
         return CachedPublishTimeProvider(hybrid, cacheFile, Duration.ofDays(30))
     }
 }
+
+/**
+ * The `minDepAgeDays` gradle property wired as a Provider, shared by both tasks.
+ * A non-integer value fails with a message naming the property instead of a raw
+ * NumberFormatException.
+ */
+internal fun minAgeDaysProperty(project: Project): Provider<Int> =
+    project.providers
+        .gradleProperty("minDepAgeDays")
+        .orElse("7")
+        .map { value ->
+            value.toIntOrNull()
+                ?: throw GradleException(
+                    "Invalid gradle property 'minDepAgeDays=$value': must be an integer (e.g. -PminDepAgeDays=7).",
+                )
+        }
 
 internal fun lookupPublishTimes(
     provider: PublishTimeProvider,

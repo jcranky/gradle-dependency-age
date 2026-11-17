@@ -5,6 +5,8 @@ import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class DependencyAgePluginsTest {
@@ -27,6 +29,7 @@ class DependencyAgePluginsTest {
             project.layout.buildDirectory.file("dependency-age-cache.json").get(),
             task.cacheFile.get(),
         )
+        assertEquals(project.rootDir, task.rootDir.get().asFile)
         assertEquals("verification", task.group)
     }
 
@@ -40,6 +43,32 @@ class DependencyAgePluginsTest {
         val task = project.tasks.named("verifyDependencyAge", VerifyDependencyAgeTask::class.java).get()
         assertEquals(3, task.minAgeDays.get())
         assertEquals("origin/some-branch", task.baseRef.get())
+    }
+
+    @Test
+    fun nonIntegerMinDepAgeDaysPropertyFailsWithAHelpfulMessage() {
+        val projectDir = File(javaClass.getResource("/plugin-props-invalid")!!.file)
+        val project = ProjectBuilder.builder().withProjectDir(projectDir).build()
+
+        project.pluginManager.apply(DependencyAgeVerifyPlugin::class.java)
+        project.pluginManager.apply(DependencyAgeFilterPlugin::class.java)
+
+        val verifyTask = project.tasks.named("verifyDependencyAge", VerifyDependencyAgeTask::class.java).get()
+        val filterTask = project.tasks.named("filterCandidatesByAge", FilterCandidatesByAgeTask::class.java).get()
+
+        val verifyError = assertThrows(Exception::class.java) {
+            verifyTask.minAgeDays.get()
+        }
+        val verifyChain = generateSequence(verifyError as Throwable) { it.cause }.joinToString(" | ") { it.message.orEmpty() }
+        assertTrue(
+            "minDepAgeDays" in verifyChain && "abc" in verifyChain,
+            "failure chain should name the property and the invalid value, got: $verifyChain",
+        )
+        val filterError = assertThrows(Exception::class.java) {
+            filterTask.minAgeDays.get()
+        }
+        val filterChain = generateSequence(filterError as Throwable) { it.cause }.joinToString(" | ") { it.message.orEmpty() }
+        assertTrue("minDepAgeDays" in filterChain && "abc" in filterChain, "unexpected chain: $filterChain")
     }
 
     @Test

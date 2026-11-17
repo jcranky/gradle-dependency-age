@@ -73,6 +73,28 @@ class DependencyAgeSelfVerificationTest {
         )
     }
 
+    @Test
+    fun selfCheckRunsUnderConfigurationCache() {
+        setupProject()
+        copyRepoLockfiles()
+        val baseRef = commitCurrentState()
+
+        val result =
+            GradleRunner.create().withPluginClasspath().withProjectDir(projectDir)
+                .withArguments("verifyDependencyAge", "-PbaseRef=$baseRef", "--configuration-cache")
+                .build()
+
+        assertEquals(
+            TaskOutcome.SUCCESS,
+            result.task(":verifyDependencyAge")!!.outcome,
+            "verify must succeed under the configuration cache:\n${result.output}",
+        )
+        assertTrue(
+            "Configuration cache problems" !in result.output && "configuration cache" !in result.output.replace("Consider enabling configuration cache", ""),
+            "verify must not produce configuration cache problems:\n${result.output}",
+        )
+    }
+
     private fun setupProject() {
         File(projectDir, "settings.gradle.kts")
             .writeText("rootProject.name = \"dependency-age-selfcheck\"\n")
