@@ -1,7 +1,19 @@
+// Keep the plugin's own dependency graph reproducible: a supply-chain tool
+// must not resolve "whatever is latest today" for its own dependencies.
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
 plugins {
     `kotlin-dsl`
     `maven-publish`
     signing
+}
+
+dependencyLocking {
+    lockAllConfigurations()
 }
 
 group = "com.jcranky"

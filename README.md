@@ -85,4 +85,6 @@ Renovate's own docs recommend pairing bot-side `minimumReleaseAge` with package-
 ./gradlew test
 ```
 
-New task-flavoured code follows a test-first workflow: existing behaviour is covered by unit tests around the parser/differ/filter/verifier units, and plugin registration is covered by `DependencyAgePluginsTest`.
+New task-flavoured code follows a test-first workflow: existing behaviour is covered by unit tests around the parser/differ/filter/verifier units, and plugin registration is covered by `DependencyAgePluginsTest`; the self-verification tests dogfood the plugins through TestKit — `DependencyAgeSelfVerificationTest` runs the verify gate against this repo's own lockfiles, and `DependencyAgeFilterSelfVerificationTest` runs the filter against a staged ben-manes report (publish times seeded via the shared cache file, so both stay network-free and deterministic).
+
+This repo eats its own cooking: its dependencies are locked (`dependencyLocking`, committed `gradle.lockfile` / `buildscript-gradle.lockfile`) so the builds that produce the plugins are reproducible too. Regenerate the lockfiles with `./gradlew :dependencies --write-locks` after dependency changes, and commit them in the same PR — CI fails if they drift.
