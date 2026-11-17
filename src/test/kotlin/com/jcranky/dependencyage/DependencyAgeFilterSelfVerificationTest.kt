@@ -26,11 +26,16 @@ class DependencyAgeFilterSelfVerificationTest {
     private val youngGav = "com.example.selfcheck:seeded-too-young:3.0.0"
 
     @Test
-    fun filterCheckAcceptsOldAndUnknownCandidatesAndRejectsTooYoungOnes() {
+    fun filterCheckAcceptsOldCandidatesAndStagesTooYoungAndUnverifiableOnes() {
         setupProject()
         stageDependencyUpdatesReport()
-        seedCache(oldGav, Instant.now().minus(100, ChronoUnit.DAYS))
-        seedCache(youngGav, Instant.now())
+        SelfVerificationSupport.seedPublishTimeCache(
+            projectDir,
+            mapOf(
+                oldGav to Instant.now().minus(100, ChronoUnit.DAYS),
+                youngGav to Instant.now(),
+            ),
+        )
 
         val result = GradleRunner.create().withPluginClasspath().withProjectDir(projectDir)
             .withArguments("filterCandidatesByAge")
@@ -49,10 +54,15 @@ class DependencyAgeFilterSelfVerificationTest {
             "# FILTERED: com.example.selfcheck:seeded-too-young:1.0.0 -> 3.0.0" in filteredReport,
             "too-young candidate should be rejected:\n$filteredReport",
         )
-    }
-
-    private fun seedCache(gav: String, publishTime: Instant) {
-        SelfVerificationSupport.seedPublishTimeCache(projectDir, mapOf(gav to publishTime))
+        assertTrue(
+            "## Unverifiable candidates" in filteredReport,
+            "candidates with unknown publish time must not be recommended:\n$filteredReport",
+        )
+        assertTrue(
+            "# UNVERIFIED: com.example.selfcheck:seeded-unknown:1.0.0 -> 9.9.9" in filteredReport,
+            "unknown-publish-time candidate should be staged as unverifiable:\n$filteredReport",
+        )
+        assertTrue("seeded-unknown" !in filteredReport.substringBefore("## Unverifiable candidates"), "unexpected report:\n$filteredReport")
     }
 
     private fun setupProject() {
