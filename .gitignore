@@ -2,3 +2,8 @@
 build/
 .idea/
 local.properties
+
+# local-only files that may hold credentials — never commit these
+*.local.properties
+.env
+.env.*
