@@ -17,7 +17,7 @@ dependencyLocking {
 }
 
 group = "com.jcranky"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -35,6 +35,12 @@ dependencies {
 
 kotlin {
     jvmToolchain(25)
+}
+
+// Central Portal requires sources and javadoc jars alongside the main jar.
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 gradlePlugin {
@@ -86,5 +92,24 @@ publishing {
                 developerConnection.set("scm:git:ssh://github.com/jcranky/gradle-dependency-age.git")
             }
         }
+    }
+}
+
+// Central Portal rejects unsigned artifacts. Signing is wired from the CI
+// environment (useInMemoryPgpKeys); without the env vars (local builds) no
+// sign tasks are registered — an unsigned publish then fails Central
+// validation, so secrets being misconfigured can never ship silently.
+signing {
+    val signingKey = providers.environmentVariable("GPG_PRIVATE_KEY").orNull
+    val signingPassphrase = providers.environmentVariable("GPG_PASSPHRASE").orNull
+    val signingKeyId = providers.environmentVariable("GPG_KEY_ID").orNull
+
+    if (signingKey != null && signingPassphrase != null) {
+        if (signingKeyId != null) {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassphrase)
+        } else {
+            useInMemoryPgpKeys(signingKey, signingPassphrase)
+        }
+        sign(publishing.publications)
     }
 }
