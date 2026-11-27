@@ -1,0 +1,26 @@
+name: release-please
+
+# Maintains a single standing release PR: version bump (build.gradle.kts) +
+# CHANGELOG.md generated from conventional-commit PR titles. A human edits the
+# PR freely, then merges it — merging tags vX.Y.Z and creates the GitHub
+# Release, whose push triggers publish.yml (Maven Central).
+#
+# RELEASE_PAT is a fine-grained PAT (contents: read/write) — a tag created
+# with the default GITHUB_TOKEN does NOT trigger other workflows.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PAT }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
