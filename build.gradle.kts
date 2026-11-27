@@ -72,6 +72,11 @@ tasks.test {
 publishing {
     publications.withType<MavenPublication>().configureEach {
         pom {
+            name.set("Gradle Dependency Age")
+            description.set(
+                "Gradle plugins gating dependency updates by publication age: " +
+                    "verifyDependencyAge (CI lockfile gate) and filterCandidatesByAge (update-report filter)"
+            )
             url.set("https://github.com/jcranky/gradle-dependency-age")
             licenses {
                 license {
