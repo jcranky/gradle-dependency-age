@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/jcranky/gradle-dependency-age/compare/v0.1.0...v0.2.0) (2026-11-27)
+
+
+### Features
+
+* release automation via Release Please ([#10](https://github.com/jcranky/gradle-dependency-age/issues/10)) ([83ec52d](https://github.com/jcranky/gradle-dependency-age/commit/83ec52d9b2c10624d439a04babbbdd70e9d3cff4))
+
+
+### Bug Fixes
+
+* add POM name/description for Central validation; bump Actions to node24 majors ([#9](https://github.com/jcranky/gradle-dependency-age/issues/9)) ([4370607](https://github.com/jcranky/gradle-dependency-age/commit/4370607931d83d8fe832f50a8a3cab9a265eb815))
+* bump release-please-action to v5 (node24 native) ([#14](https://github.com/jcranky/gradle-dependency-age/issues/14)) ([3d3d2ba](https://github.com/jcranky/gradle-dependency-age/commit/3d3d2ba7e7a194c383c0d5400e2a05a89aa98fbf))
+* first release proposes 0.1.0; move to googleapis/release-please-action ([#12](https://github.com/jcranky/gradle-dependency-age/issues/12)) ([b3309d3](https://github.com/jcranky/gradle-dependency-age/commit/b3309d3e55bc28b52c5c0129f85adfc99dd7bc37))
+
 ## 0.1.0 (2026-11-27)
 
 
