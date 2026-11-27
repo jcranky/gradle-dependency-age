@@ -24,3 +24,9 @@ Standalone Gradle plugin repo (published to Maven Central via tagged releases).
 ## Release notes guidance
 
 Bump versions deliberately: consumers pin plugin versions; changes must ship as new versions with a clean changelog entry in the release notes. New behaviour needs new tests first — existing behaviour is already covered by unit tests (one per unit) plus `DependencyAgePluginsTest` for registration defaults.
+
+## Pull request titles (Conventional Commits — MANDATORY)
+
+- Squash merges only: **the PR title becomes the main-branch commit and the changelog entry** — Release Please parses it for versioning and release notes.
+- Prefix every PR title: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `perf:`. Breaking changes: `feat!:` or a `BREAKING CHANGE:` footer.
+- The release PR (version bump + `CHANGELOG.md`) is a human-edited proposal: edit it before merging. Merging it tags the release and triggers the Maven Central publish. See `CONTRIBUTING.md`.
