@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/jcranky/gradle-dependency-age/compare/v0.2.0...v0.2.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* derive project version from the release-please manifest ([#18](https://github.com/jcranky/gradle-dependency-age/issues/18)) ([fd721cd](https://github.com/jcranky/gradle-dependency-age/commit/fd721cd0d26d086f80ef8fc43b6fd07cbf38ee5f))
+
 ## [0.2.0](https://github.com/jcranky/gradle-dependency-age/compare/v0.1.0...v0.2.0) (2026-11-28)
 
 
