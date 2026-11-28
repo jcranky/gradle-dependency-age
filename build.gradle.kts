@@ -17,7 +17,16 @@ dependencyLocking {
 }
 
 group = "com.jcranky"
-version = "0.1.0"
+// Version comes from the release-please manifest — release PRs update it,
+// so each release automatically publishes under the right version. A missing
+// manifest (fresh clone before the first release) falls back to a
+// never-publishable snapshot marker.
+version =
+    file(".release-please-manifest.json").takeIf { it.exists() }
+        ?.let { manifest ->
+            (groovy.json.JsonSlurper().parse(manifest) as Map<*, *>)["."] as String
+        }
+        ?: "0.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
