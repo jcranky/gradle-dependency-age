@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/jcranky/gradle-dependency-age/compare/v0.1.0...v0.2.0) (2026-11-28)
+
+
+### Features
+
+* default minimum publication age to 1 day ([#16](https://github.com/jcranky/gradle-dependency-age/issues/16)) ([a934c43](https://github.com/jcranky/gradle-dependency-age/commit/a934c43aaf7286f743692aba8611f8b193662d2f))
+
 ## 0.1.0 (2026-11-27)
 
 
