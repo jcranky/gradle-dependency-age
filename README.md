@@ -80,6 +80,10 @@ Layered fresh-release defenses (the npm side of a mixed stack gets the same trea
 
 Renovate's own docs recommend pairing bot-side `minimumReleaseAge` with package-manager-level enforcement; for Gradle, this verify gate is that missing layer.
 
+## Releases
+
+Published to Maven Central via release-please. Version history gap: **0.2.0 was never published** — its publish run failed (it re-uploaded the then-pinned 0.1.0 artifacts; fixed by deriving the version from the release-please manifest). Central skips from 0.1.0 to 0.2.1; the v0.2.0 GitHub release page carries the full note.
+
 ## Development
 
 ```bash
