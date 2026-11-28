@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/jcranky/gradle-dependency-age/compare/v0.2.0...v0.2.1) (2026-11-28)
+
+> **⚠️ Version history note:** [v0.2.0](https://github.com/jcranky/gradle-dependency-age/releases/tag/v0.2.0) was tagged but **never published to Maven Central** — its publish run failed by re-uploading the then-pinned 0.1.0 artifacts, which Central rejects as duplicates. This release fixes that by deriving the version from the release-please manifest. Central skips from [0.1.0](https://repo1.maven.org/maven2/com/jcranky/gradle-dependency-age/0.1.0/) to this release.
+
+### Bug Fixes
+
+* derive project version from the release-please manifest ([#18](https://github.com/jcranky/gradle-dependency-age/issues/18)) ([fd721cd](https://github.com/jcranky/gradle-dependency-age/commit/fd721cd0d26d086f80ef8fc43b6fd07cbf38ee5f))
+
 ## [0.2.0](https://github.com/jcranky/gradle-dependency-age/compare/v0.1.0...v0.2.0) (2026-11-28)
 
 
