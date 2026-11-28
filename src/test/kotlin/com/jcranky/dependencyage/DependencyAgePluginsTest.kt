@@ -21,7 +21,7 @@ class DependencyAgePluginsTest {
         project.pluginManager.apply(DependencyAgeVerifyPlugin::class.java)
 
         val task = project.tasks.named("verifyDependencyAge", VerifyDependencyAgeTask::class.java).get()
-        assertEquals(7, task.minAgeDays.get())
+        assertEquals(1, task.minAgeDays.get())
         assertEquals("origin/main", task.baseRef.get())
         assertEquals("gradle.lockfile", task.mainLockfile.get().asFile.name)
         assertEquals("buildscript-gradle.lockfile", task.buildscriptLockfile.get().asFile.name)
@@ -78,7 +78,7 @@ class DependencyAgePluginsTest {
         project.pluginManager.apply(DependencyAgeFilterPlugin::class.java)
 
         val task = project.tasks.named("filterCandidatesByAge", FilterCandidatesByAgeTask::class.java).get()
-        assertEquals(7, task.minAgeDays.get())
+        assertEquals(1, task.minAgeDays.get())
         assertEquals(
             project.layout.buildDirectory.file("dependencyUpdates/report.txt").get(),
             task.dependencyUpdatesReport.get(),
