@@ -17,10 +17,8 @@ dependencyLocking {
 }
 
 group = "com.jcranky"
-// Version comes from the release-please manifest — release PRs update it,
-// so each release automatically publishes under the right version. A missing
-// manifest (fresh clone before the first release) falls back to a
-// never-publishable snapshot marker.
+// Version from the release-please manifest (updated by release PRs);
+// snapshot fallback if absent.
 version =
     file(".release-please-manifest.json").takeIf { it.exists() }
         ?.let { manifest ->
