@@ -4,8 +4,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
- * Registers the `verifyDependencyAge` task with parity to the historical configuration:
- *  - minAgeDays: gradle property `minDepAgeDays`, default 7
+ * Registers the `verifyDependencyAge` task with these defaults:
+ *  - minAgeDays: gradle property `minDepAgeDays`, default 1
  *  - baseRef: gradle property `baseRef`, then a CI-provided diff base
  *    (e.g. `CI_MERGE_REQUEST_DIFF_BASE_SHA` in GitLab MR pipelines), then `origin/main`
  *  - lockfiles: `gradle.lockfile` and `buildscript-gradle.lockfile` in the project dir

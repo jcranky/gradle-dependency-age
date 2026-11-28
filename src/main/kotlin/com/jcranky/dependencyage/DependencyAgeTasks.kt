@@ -195,11 +195,11 @@ object PublishTimeProviders {
 internal fun minAgeDaysProperty(project: Project): Provider<Int> =
     project.providers
         .gradleProperty("minDepAgeDays")
-        .orElse("7")
+        .orElse("1")
         .map { value ->
             value.toIntOrNull()
                 ?: throw GradleException(
-                    "Invalid gradle property 'minDepAgeDays=$value': must be an integer (e.g. -PminDepAgeDays=7).",
+                    "Invalid gradle property 'minDepAgeDays=$value': must be an integer (e.g. -PminDepAgeDays=1).",
                 )
         }
 

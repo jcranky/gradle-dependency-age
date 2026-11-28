@@ -4,8 +4,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
- * Registers the `filterCandidatesByAge` task with parity to the historical configuration:
- *  - minAgeDays: gradle property `minDepAgeDays`, default 7
+ * Registers the `filterCandidatesByAge` task with these defaults:
+ *  - minAgeDays: gradle property `minDepAgeDays`, default 1
  *  - input: `<buildDir>/dependencyUpdates/report.txt` (ben-manes dependencyUpdates report)
  *  - output: `<buildDir>/dependencyUpdates/report-filtered.txt`
  *  - cache: `<buildDir>/dependency-age-cache.json` (shared with the verify plugin)

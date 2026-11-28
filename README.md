@@ -53,7 +53,7 @@ Requires `mavenCentral()` in `pluginManagement` repositories (`settings.gradle.k
 
 | Property (all tasks) | Default | Meaning |
 |---|---|---|
-| `minDepAgeDays` | `7` | Minimum age of a candidate/changed GAV; `0` disables the gate |
+| `minDepAgeDays` | `1` | Minimum age of a candidate/changed GAV; `0` disables the gate |
 | `baseRef` (verify only) | CI-provided diff base (e.g. `CI_MERGE_REQUEST_DIFF_BASE_SHA`), else `origin/main` | Git ref whose lockfiles form the diff base |
 
 All task properties (`mainLockfile`, `buildscriptLockfile`, `cacheFile`, `dependencyUpdatesReport`, `filteredReport`) can be overridden in custom task configuration if your layout differs.
