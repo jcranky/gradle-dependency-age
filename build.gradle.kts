@@ -17,7 +17,14 @@ dependencyLocking {
 }
 
 group = "com.jcranky"
-version = "0.1.0"
+// Version from the release-please manifest (updated by release PRs);
+// snapshot fallback if absent.
+version =
+    file(".release-please-manifest.json").takeIf { it.exists() }
+        ?.let { manifest ->
+            (groovy.json.JsonSlurper().parse(manifest) as Map<*, *>)["."] as String
+        }
+        ?: "0.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
